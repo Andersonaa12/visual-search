@@ -1,0 +1,36 @@
+python -m venv .venv
+
+pip install -r requirements.txt
+
+docker-compose up --build
+
+docker exec -it $(docker-compose ps -q db) psql -U vs_user -d vs_db
+
+docker-compose exec api python -m controller.ingest
+
+docker-compose exec api pytest -q
+
+INGESTA COMPLETADA
+docker-compose exec api python controller/ingest.py
+
+DOCKER IMG
+docker-compose down
+docker-compose up -d
+docker-compose exec api python controller/ingest.py
+
+PRUEBAS
+docker-compose build --no-cache
+docker-compose up -d
+start http://localhost:8001/docs
+docker-compose exec api bash -c 'curl -s -o /dev/null -w "%{http_code}\n" $GET_IMAGES_URL'
+docker-compose exec api python controller/ingest.py
+
+
+POSTGRES
+docker ps -a
+docker exec -it visual-search-db-1 psql -U vs_user -d vs_db
+\dt
+SELECT * FROM product_image_features LIMIT 5;
+\q outpút
+
+

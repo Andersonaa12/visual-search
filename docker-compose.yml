@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  db:
+    image: ankane/pgvector:latest
+    environment:
+      POSTGRES_DB: vs_db
+      POSTGRES_USER: vs_user
+      POSTGRES_PASSWORD: vs_pass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vs_user -d vs_db"]
+      interval: 5s
+      retries: 5
+
+  api:
+    build: .
+    env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # resuelve al host Windows/Mac
+      - "stockago.local:host-gateway"         # Dominio Local
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8001:8000"       # FastAPI docs → http://localhost:8001/docs
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./:/app           # hot-reload en desarrollo enrutador
+
+volumes:
+  pgdata:
