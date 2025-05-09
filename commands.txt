@@ -11,20 +11,21 @@ docker-compose exec api python -m controller.ingest
 docker-compose exec api pytest -q
 
 INGESTA COMPLETADA
-docker-compose exec api python controller/ingest.py
+docker compose run --rm api python -m app.ingest
 
 DOCKER IMG
 docker-compose down
 docker-compose up -d
-docker-compose exec api python controller/ingest.py
+docker compose run --rm api python -m app.ingest
 
 PRUEBAS
 docker-compose build --no-cache
 docker-compose up -d
 start http://localhost:8001/docs
 docker-compose exec api bash -c 'curl -s -o /dev/null -w "%{http_code}\n" $GET_IMAGES_URL'
-docker-compose exec api python controller/ingest.py
 
+docker compose run --rm api python -m app.ingest
+docker-compose start api
 
 POSTGRES
 docker ps -a
@@ -33,4 +34,8 @@ docker exec -it visual-search-db-1 psql -U vs_user -d vs_db
 SELECT * FROM product_image_features LIMIT 5;
 \q outpút
 
-
+****************************************
+docker-compose down -v
+docker-compose build
+docker-compose up -d
+docker compose run --rm api python -m app.ingest
