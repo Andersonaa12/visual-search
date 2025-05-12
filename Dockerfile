@@ -5,16 +5,16 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     KERAS_HOME=/root/.keras
 
-# -- dependencias del sistema --
+# System dependencies
 RUN apt-get update -qq && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        git build-essential libgl1 && \
+    git build-essential libgl1 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiamos el proyecto
+# Copy project
 COPY . .
 
 EXPOSE 8000
