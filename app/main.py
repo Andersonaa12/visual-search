@@ -207,26 +207,33 @@ async def search_by_image(
             rows = (
                 await sess.execute(
                     text("""
-                    SELECT product_id, product_image_id, description,
-                           categories, feature_vector,
-                           (w_img * (feature_vector <-> :q_img) +
-                            w_txt * (description_vector <-> :q_desc)) / (w_img + w_txt) AS dist
-                    FROM product_image_features
-                    WHERE (w_img * (feature_vector <-> :q_img) +
-                           w_txt * (description_vector <-> :q_desc)) / (w_img + w_txt) < :th
+                    SELECT  product_id,
+                            product_image_id,
+                            description,
+                            categories,
+                            feature_vector,
+                            ((feature_vector    <-> CAST(:q_img  AS vector))
+                            + 
+                            (description_vector <-> CAST(:q_desc AS vector))
+                            ) / 2 AS dist
+                    FROM    product_image_features
+                    WHERE   ((feature_vector    <-> CAST(:q_img  AS vector))
+                            + 
+                            (description_vector <-> CAST(:q_desc AS vector))
+                            ) / 2 < :th
                     ORDER BY dist
-                    LIMIT :lim
+                    LIMIT  :lim
                     """),
                     {
                         "q_img": vec_to_pg(img_vec),
                         "q_desc": vec_to_pg(cap_vec),
-                        "w_img": w_img,
-                        "w_txt": w_txt,
-                        "th": DIST_THRESHOLD,
+                        "th": 99.28,
                         "lim": k,
                     },
                 )
             ).all()
+
+
 
         if not rows:
             return JSONResponse(
